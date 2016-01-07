@@ -28,7 +28,7 @@ infixr 9 <$<
 (<$<) :: Functor f => (b -> c) -> (a -> f b) -> a -> f c
 (<$<) g f x = g <$> f x
 
--- Removes the first element which satisfies a predicate, if it it present
+-- Removes the first element which satisfies a predicate, if it is present
 remove :: (a -> Bool) -> [a] -> Maybe ([a],a)
 remove p = sequence . filterAccum f Nothing where
   f x Nothing | p x = (False, Just x)
