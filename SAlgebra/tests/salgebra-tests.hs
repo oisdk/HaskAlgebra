@@ -24,7 +24,7 @@ instance (Num a, Arbitrary a, Ord a, Show a) => Arbitrary (Expr a) where
     nExpr n | n <= 0 = liftM Const arbitrary
             | otherwise = oneof [ liftM2 Func arbitrary nest
                                 , liftM Const (suchThat arbitrary (1000>))
-                                , liftM Var (elements ['a'..'z'])
+                                , liftM Var (pure <$> elements ['a'..'z'])
                                 , liftM2 (:^:) nest arbitrary
                                 , liftM2 (:/:) nest nest
                                 , liftM Prod (listOf1 nest)
@@ -55,7 +55,7 @@ prop_SampleDeriv :: Property
 prop_SampleDeriv = once (nddx 4 e == simplified (Const (-2520) * x :^: 3 + Const (-144))) where
   e :: Expr Int
   e = (Const (-3) * x :^: 7) + (Const (-6) * x :^: 4) + (Const 8 * x :^: 3) + (Const (-12) * x) + (Const 18)
-  x = Var 'x'
+  x = Var "x"
 
 prop_Eval :: ConstExpr Integer -> P.Property
 prop_Eval = P.ioProperty . catchZeroDenom  . P.liftBool . (liftA2 comp cEval (cEval . cSimp)) where
@@ -65,8 +65,8 @@ prop_Eval = P.ioProperty . catchZeroDenom  . P.liftBool . (liftA2 comp cEval (cE
   comp _ _ = True
 
 prop_ExampleAssociativeAdd :: P.Property
-prop_ExampleAssociativeAdd = prop_AssociativeAdd (Var 'c') (Var 'a') c where
-  c = Const (-1) * (Var 'b') + Var 'b'
+prop_ExampleAssociativeAdd = prop_AssociativeAdd (Var "c") (Var "a") c where
+  c = Const (-1) * (Var "b") + Var "b"
 
 prop_AssociativeAdd :: Expr Integer -> Expr Integer -> Expr Integer -> P.Property
 prop_AssociativeAdd = sSameResult3 (\a b c -> (a + b) + c) (\a b c -> a + (b + c))

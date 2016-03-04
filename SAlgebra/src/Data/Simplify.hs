@@ -6,7 +6,7 @@ module Data.Simplify
   ) where
 
 import Data.SAlgebra
-import Data.List (sort, (\\))
+import Data.List (sort, (\\), uncons)
 import Prelude hiding ((+), (*))
 import qualified Prelude as P
 import Control.Monad.Writer
@@ -24,7 +24,7 @@ filterAccum :: (x -> acc -> (Bool, acc)) -> acc -> [x] -> ([x], acc)
 filterAccum f s t = runState (filterM (state . f) t) s
 
 -- Functor composition
-infixr 9 <$<
+infixr 8 <$<
 (<$<) :: Functor f => (b -> c) -> (a -> f b) -> a -> f c
 (<$<) g f x = g <$> f x
 
@@ -63,7 +63,7 @@ factorise [] = Left (Const 0)
 factorise xs = case mostFrequent (extractProd xs) of
   (1,_) -> Right xs
   (_,f) -> Left (extractFac f xs)
-
+  
 -- Tries to cancel out numbers which are the negation of each other
 diff :: (Num a, Eq a, Integral a) => [Expr a] -> Either (Expr a) [Expr a]
 diff xs = case remove p xs of
@@ -75,7 +75,6 @@ diff xs = case remove p xs of
         back xxs []  = Left (Prod (Const (-1) : [SSum xxs]))
         back []  yys = Right yys
         back xxs yys = Right (Prod (Const (-1) : [SSum xxs]) : yys)
-
 
 extractFac :: (Num a, Ord a, Integral a) => Expr a -> [Expr a] -> Expr a
 extractFac p xs = p * simplify (SSum e) + SSum r where

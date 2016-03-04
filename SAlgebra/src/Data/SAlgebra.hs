@@ -21,7 +21,7 @@ infixl 4 *
 infixl 5 /
 infixr 6 ^
 
-data Expr a = Var Char
+data Expr a = Var String
             | Func EFunc (Expr a)
             | (Expr a) :^: a
             | (Expr a) :/: (Expr a)
@@ -33,14 +33,14 @@ data Expr a = Var Char
 (^) = (:^:)
 (/) = (:/:)
 
-eval :: Integral a => Expr a -> Either Char (Ratio a)
+eval :: Integral a => Expr a -> Either String (Ratio a)
 eval (Const a) = Right (a % 1)
 eval (Var c) = Left c
 eval (a :^: b) = (^^ b) <$> eval a
 eval (a :/: b) = (P./) <$> eval a <*> eval b
 eval (Prod xs) = product <$> traverse eval xs
 eval (SSum xs) = sum <$> traverse eval xs
-eval (Func f e) = Left 'f'
+eval (Func f e) = Left "f"
 
 (*) :: Expr a -> Expr a -> Expr a
 Prod xs * Prod ys = Prod (xs ++ ys)
@@ -56,7 +56,7 @@ a + b             = SSum [a,b]
 
 data EFunc = Cos | Sin | Tan | Exp | Log deriving (Eq, Show, Ord, Enum, Bounded)
 
-subIn :: (Char -> a) -> Expr a -> Expr a
+subIn :: (String -> a) -> Expr a -> Expr a
 subIn f (Var c) = Const (f c)
 subIn f (Func g e) = Func g (subIn f e)
 subIn _ (Const c) = Const c
@@ -81,7 +81,7 @@ condBr n e | n > prec e = "(" ++ show e ++ ")"
 instance Show a => Show (Expr a) where
   show (Func f e) = show f ++ "(" ++ show e ++ ")"
   show (Const a) = show a
-  show (Var c) = [c]
+  show (Var c) = c
   show e@(a :^: b) = condBr n a ++ "^" ++ show b where n = prec e
   show e@(a :/: b) = condBr n a ++ " / " ++ condBr n b where n = prec e
   show e@(Prod xs) = (intercalate " * " . map (condBr n)) xs where n = prec e
@@ -90,7 +90,7 @@ instance Show a => Show (Expr a) where
 showExpr :: Show a => Expr a -> String
 showExpr (Func f e) = show f ++ "(" ++ showExpr e ++ ")"
 showExpr (Const a) = show a 
-showExpr (Var c) = [c]
+showExpr (Var c) = c
 showExpr (a :^: b) = "(" ++ showExpr a ++ "^" ++ show b ++ ")"
 showExpr (a :/: b) = "(" ++ showExpr a ++ " / " ++ showExpr b ++ ")"
 showExpr (Prod xs) = "P((" ++ (intercalate ")(" . map showExpr) xs ++ "))"
